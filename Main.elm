@@ -1,4 +1,5 @@
 import Html as H
+import Html.Keyed as HK
 import Html.Attributes as HA
 import Html.Events as HE
 import Platform.Cmd exposing (Cmd)
@@ -26,6 +27,10 @@ init =
     , { completed = True  , title = "Propose Talk", todoId = 1 }
     ]}
 
+todoKeyedView : Todo.Model -> (String, H.Html Msg)
+todoKeyedView todo = 
+  (toString todo.todoId ,H.map (TodoMsg todo.todoId) <| Todo.view todo)
+
 view : Model -> H.Html Msg
 view model = H.section [] 
   [H.section [HA.class "todo"]
@@ -39,9 +44,8 @@ view model = H.section []
       , onEnter NewTodo
       ] 
       []
-    , H.ul [HA.class "todo-list"] 
-      <| List.map (\t -> H.map (TodoMsg t.todoId) <| Todo.view t) model.todos 
-      ]]
+    , HK.ul [HA.class "todo-list"] <| List.map todoKeyedView model.todos 
+    ]]
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =

@@ -23,6 +23,7 @@ view model = H.li [HA.classList [("completed",model.completed)]]
       [ HA.type_ "checkbox"
       , HA.class "toggle"
       , HE.onClick (Toggle model.todoId) 
+      , HA.checked model.completed
       ] []
     , H.text model.title ]
   ]
