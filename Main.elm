@@ -33,7 +33,7 @@ todoView t = H.li [HA.classList [("completed",t.completed)]]
   ]
 
 view : Model -> H.Html Msg
-view model = H.body [] 
+view model = H.section [] 
   [H.section [HA.class "todo"]
     [H.ul [HA.class "todo-list"] 
       <| List.map todoView model.todos 
