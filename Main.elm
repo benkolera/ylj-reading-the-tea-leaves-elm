@@ -71,7 +71,7 @@ update msg model =
           ) model.todos 
        }, Cmd.none )
     UpdateString s ->
-      ( { model | editingStr = Debug.log "S" s }, Cmd.none )
+      ( { model | editingStr = s }, Cmd.none )
     NewTodo ->
       ( { model 
         | editingStr = ""
