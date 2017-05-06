@@ -4,20 +4,15 @@ import Html.Events as HE
 import Platform.Cmd exposing (Cmd)
 import Platform.Sub exposing (Sub)
 import Json.Decode as Json
+import Todo
 
 type Msg 
-  = Toggle Int
+  = TodoMsg Int Todo.Msg
   | UpdateString String
   | NewTodo
 
-type alias Todo = 
-  { completed : Bool
-  , title     : String 
-  , todoId    : Int
-  }
-
 type alias Model = 
-  { todos      : List Todo 
+  { todos      : List Todo.Model
   , editingStr : String
   , nextId     : Int
   }
@@ -30,17 +25,6 @@ init =
     [ { completed = False , title = "Write Talk", todoId = 2 }
     , { completed = True  , title = "Propose Talk", todoId = 1 }
     ]}
-
-todoView : Todo -> H.Html Msg
-todoView t = H.li [HA.classList [("completed",t.completed)]] 
-  [ H.label []
-    [ H.input 
-      [ HA.type_ "checkbox"
-      , HA.class "toggle"
-      , HE.onClick (Toggle t.todoId) 
-      ] []
-    , H.text t.title ]
-  ]
 
 view : Model -> H.Html Msg
 view model = H.section [] 
@@ -56,20 +40,16 @@ view model = H.section []
       ] 
       []
     , H.ul [HA.class "todo-list"] 
-      <| List.map todoView model.todos 
+      <| List.map (\t -> H.map (TodoMsg t.todoId) <| Todo.view t) model.todos 
       ]]
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
   case msg of
-    Toggle toggleId -> 
+    TodoMsg i m -> 
       ( { model 
-        | todos = List.map 
-          (\t -> if t.todoId == toggleId 
-                 then { t | completed = not t.completed } 
-                 else t 
-          ) model.todos 
-       }, Cmd.none )
+      | todos = List.map (\t -> if t.todoId == i then Todo.update m t else t) model.todos } 
+      , Cmd.none )
     UpdateString s ->
       ( { model | editingStr = s }, Cmd.none )
     NewTodo ->
