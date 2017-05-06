@@ -8,16 +8,21 @@ import Platform.Sub exposing (Sub)
 type Msg = Toggle | Reset
 
 -- This is the model that drives the UI
-type alias Model = { on : Bool }
+type alias Model = { on : Bool, clicks : Int }
 
 -- We initialise the model to our starting value
 init : Model
-init = { on = True }
+init = { on = True, clicks = 0 }
 
 -- A function from model -> Html 
 view : Model -> H.Html Msg
 view model = 
-  let msg = if model.on then "Hello" else "World"
+  let divBy5 = model.clicks % 5 == 0 
+      divBy3 = model.clicks % 3 == 0
+      msg = if divBy5 && divBy3 then "FizzBuzz"
+            else if divBy3 then "Fizz"
+            else if divBy5 then "Buzz"
+            else toString model.clicks
   in H.body []
     -- This button raises a toggle event that triggers an update
     [ H.button [ HA.class "big-button", HE.onClick Toggle ] 
@@ -31,6 +36,7 @@ update msg model =
     Toggle -> ( 
       { model 
       | on = not model.on
+      , clicks = model.clicks + 1 
       }, Cmd.none ) -- Cmd.none just means no side effect.
     Reset -> ( init, Cmd.none )
 
