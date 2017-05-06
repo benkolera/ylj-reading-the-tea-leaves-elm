@@ -3,10 +3,12 @@ import Html.Attributes as HA
 import Html.Events as HE
 import Platform.Cmd exposing (Cmd)
 import Platform.Sub exposing (Sub)
+import Json.Decode as Json
 
 type Msg 
   = Toggle Int
   | UpdateString String
+  | NewTodo
 
 type alias Todo = 
   { completed : Bool
@@ -17,11 +19,13 @@ type alias Todo =
 type alias Model = 
   { todos      : List Todo 
   , editingStr : String
+  , nextId     : Int
   }
 
 init : Model
 init = 
   { editingStr = ""
+  , nextId = 3
   , todos = 
     [ { completed = False , title = "Write Talk", todoId = 2 }
     , { completed = True  , title = "Propose Talk", todoId = 1 }
@@ -48,6 +52,7 @@ view model = H.section []
       , HA.name "newTodo" 
       , HA.value model.editingStr
       , HE.onInput UpdateString
+      , onEnter NewTodo
       ] 
       []
     , H.ul [HA.class "todo-list"] 
@@ -67,6 +72,14 @@ update msg model =
        }, Cmd.none )
     UpdateString s ->
       ( { model | editingStr = Debug.log "S" s }, Cmd.none )
+    NewTodo ->
+      ( { model 
+        | editingStr = ""
+        , nextId = model.nextId + 1
+        , todos = 
+          [{completed = False, title = model.editingStr, todoId = model.nextId}] ++
+          model.todos
+        }, Cmd.none )
 
 subscriptions : Model -> Sub Msg
 subscriptions model = Sub.none
@@ -79,3 +92,14 @@ main =
     , update = update
     , subscriptions = subscriptions
     }
+
+onEnter : Msg -> H.Attribute Msg
+onEnter msg =
+    let
+        isEnter code =
+            if code == 13 then
+                Json.succeed msg
+            else
+                Json.fail "not ENTER"
+    in
+        HE.on "keydown" (Json.andThen isEnter HE.keyCode)
