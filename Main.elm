@@ -4,7 +4,9 @@ import Html.Events as HE
 import Platform.Cmd exposing (Cmd)
 import Platform.Sub exposing (Sub)
 
-type Msg = Toggle Int
+type Msg 
+  = Toggle Int
+  | UpdateString String
 
 type alias Todo = 
   { completed : Bool
@@ -13,13 +15,17 @@ type alias Todo =
   }
 
 type alias Model = 
-  { todos : List Todo }
+  { todos      : List Todo 
+  , editingStr : String
+  }
 
 init : Model
-init = { todos = 
-  [ { completed = False , title = "Write Talk", todoId = 2 }
-  , { completed = True  , title = "Propose Talk", todoId = 1 }
-  ]}
+init = 
+  { editingStr = ""
+  , todos = 
+    [ { completed = False , title = "Write Talk", todoId = 2 }
+    , { completed = True  , title = "Propose Talk", todoId = 1 }
+    ]}
 
 todoView : Todo -> H.Html Msg
 todoView t = H.li [HA.classList [("completed",t.completed)]] 
@@ -35,7 +41,16 @@ todoView t = H.li [HA.classList [("completed",t.completed)]]
 view : Model -> H.Html Msg
 view model = H.section [] 
   [H.section [HA.class "todo"]
-    [H.ul [HA.class "todo-list"] 
+    [ H.input 
+      [ HA.class "new-todo"
+      , HA.placeholder "What needs to be done?" 
+      , HA.autofocus True
+      , HA.name "newTodo" 
+      , HA.value model.editingStr
+      , HE.onInput UpdateString
+      ] 
+      []
+    , H.ul [HA.class "todo-list"] 
       <| List.map todoView model.todos 
       ]]
 
@@ -50,6 +65,8 @@ update msg model =
                  else t 
           ) model.todos 
        }, Cmd.none )
+    UpdateString s ->
+      ( { model | editingStr = Debug.log "S" s }, Cmd.none )
 
 subscriptions : Model -> Sub Msg
 subscriptions model = Sub.none
