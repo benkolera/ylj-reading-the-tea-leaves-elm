@@ -20,8 +20,19 @@ init = { todos =
   , { completed = True  , title = "Propose Talk" }
   ]}
 
+todoView : Todo -> H.Html Msg
+todoView t = H.li [HA.classList [("completed",t.completed)]] 
+  [ H.label []
+    [ H.input [HA.type_ "checkbox", HA.class "toggle" ] []
+    , H.text t.title ]
+  ]
+
 view : Model -> H.Html Msg
-view model = H.body [] []
+view model = H.body [] 
+  [H.section [HA.class "todo"]
+    [H.ul [HA.class "todo-list"] 
+      <| List.map todoView model.todos 
+      ]]
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
