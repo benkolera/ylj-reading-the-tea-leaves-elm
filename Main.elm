@@ -4,11 +4,12 @@ import Html.Events as HE
 import Platform.Cmd exposing (Cmd)
 import Platform.Sub exposing (Sub)
 
-type Msg = Noop
+type Msg = Toggle Int
 
 type alias Todo = 
   { completed : Bool
   , title     : String 
+  , todoId    : Int
   }
 
 type alias Model = 
@@ -16,14 +17,18 @@ type alias Model =
 
 init : Model
 init = { todos = 
-  [ { completed = False , title = "Write Talk" }
-  , { completed = True  , title = "Propose Talk" }
+  [ { completed = False , title = "Write Talk", todoId = 2 }
+  , { completed = True  , title = "Propose Talk", todoId = 1 }
   ]}
 
 todoView : Todo -> H.Html Msg
 todoView t = H.li [HA.classList [("completed",t.completed)]] 
   [ H.label []
-    [ H.input [HA.type_ "checkbox", HA.class "toggle" ] []
+    [ H.input 
+      [ HA.type_ "checkbox"
+      , HA.class "toggle"
+      , HE.onClick (Toggle t.todoId) 
+      ] []
     , H.text t.title ]
   ]
 
@@ -37,7 +42,14 @@ view model = H.body []
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
   case msg of
-    Noop -> ( model, Cmd.none )
+    Toggle toggleId -> 
+      ( { model 
+        | todos = List.map 
+          (\t -> if t.todoId == toggleId 
+                 then { t | completed = not t.completed } 
+                 else t 
+          ) model.todos 
+       }, Cmd.none )
 
 subscriptions : Model -> Sub Msg
 subscriptions model = Sub.none
