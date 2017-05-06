@@ -5,68 +5,42 @@ import Html.Events as HE
 import Platform.Cmd exposing (Cmd)
 import Platform.Sub exposing (Sub)
 import Json.Decode as Json
-import Todo
+import Todos
+import Pomodoro
 
 type Msg 
-  = TodoMsg Int Todo.Msg
-  | UpdateString String
-  | NewTodo
+  = PomodoroMsg Pomodoro.Msg
+  | TodosMsg Todos.Msg
 
 type alias Model = 
-  { todos      : List Todo.Model
-  , editingStr : String
-  , nextId     : Int
+  { todos      : Todos.Model
+  , pomodoro   : Pomodoro.Model
   }
 
 init : Model
 init = 
-  { editingStr = ""
-  , nextId = 3
-  , todos = 
-    [ { completed = False , title = "Write Talk", todoId = 2 }
-    , { completed = True  , title = "Propose Talk", todoId = 1 }
-    ]}
-
-todoKeyedView : Todo.Model -> (String, H.Html Msg)
-todoKeyedView todo = 
-  (toString todo.todoId ,H.map (TodoMsg todo.todoId) <| Todo.view todo)
+  { todos    = Todos.init
+  , pomodoro = Pomodoro.init
+  }
 
 view : Model -> H.Html Msg
 view model = H.section [] 
-  [H.section [HA.class "todo"]
-    [ H.input 
-      [ HA.class "new-todo"
-      , HA.placeholder "What needs to be done?" 
-      , HA.autofocus True
-      , HA.name "newTodo" 
-      , HA.value model.editingStr
-      , HE.onInput UpdateString
-      , onEnter NewTodo
-      ] 
-      []
-    , HK.ul [HA.class "todo-list"] <| List.map todoKeyedView model.todos 
-    ]]
+  [ H.map PomodoroMsg <| Pomodoro.view model.pomodoro 
+  , H.map TodosMsg <| Todos.view model.todos 
+  ]
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
   case msg of
-    TodoMsg i m -> 
-      ( { model 
-      | todos = List.map (\t -> if t.todoId == i then Todo.update m t else t) model.todos } 
-      , Cmd.none )
-    UpdateString s ->
-      ( { model | editingStr = s }, Cmd.none )
-    NewTodo ->
-      ( { model 
-        | editingStr = ""
-        , nextId = model.nextId + 1
-        , todos = 
-          [{completed = False, title = model.editingStr, todoId = model.nextId}] ++
-          model.todos
-        }, Cmd.none )
+    PomodoroMsg m -> 
+      let (newP,cmd) = Pomodoro.update m model.pomodoro 
+      in ( { model | pomodoro = newP }, Cmd.map PomodoroMsg cmd )
+    TodosMsg m -> 
+      let (newT,cmd) = Todos.update m model.todos 
+      in ( { model | todos = newT }, Cmd.map TodosMsg cmd )
 
 subscriptions : Model -> Sub Msg
-subscriptions model = Sub.none
+subscriptions model = Sub.map PomodoroMsg <| Pomodoro.subscriptions model.pomodoro
 
 main : Program Never Model Msg
 main =
